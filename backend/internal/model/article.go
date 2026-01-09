@@ -17,6 +17,11 @@ type Article struct {
 	IsTop      bool      `gorm:"default:false" json:"is_top"`                 // 是否置顶
 	CreatedAt  time.Time `json:"created_at"`                                  // 创建时间
 	UpdatedAt  time. Time `json:"updated_at"`                                  // 更新时间
+	// 所属分类（多对一）
+	Category *Category `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
+	
+	// 关联标签（多对多）
+	Tags []Tag `gorm:"many2many:article_tags;" json:"tags,omitempty"`
 }
 
 // TableName 指定表名

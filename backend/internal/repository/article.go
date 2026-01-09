@@ -80,3 +80,75 @@ func (r *ArticleRepository) IncrementViews(ctx context.Context, id uint) error {
 		Where("id = ?", id).
 		UpdateColumn("views", gorm. Expr("views + 1")).Error
 }
+
+// GetByIDWithAssociations 根据ID查询文章（包含分类和标签）
+func (r *ArticleRepository) GetByIDWithAssociations(ctx context.Context, id uint) (*model.Article, error) {
+	var article model.Article
+	err := r.db.WithContext(ctx).
+		Preload("Category").  // 预加载分类
+		Preload("Tags").      // 预加载标签
+		First(&article, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &article, nil
+}
+
+// ListWithAssociations 查询文章列表（包含分类和标签）
+func (r *ArticleRepository) ListWithAssociations(ctx context.Context, page, pageSize int, status *int8) ([]*model.Article, int64, error) {
+	var articles []*model.Article
+	var total int64
+	
+	query := r.db.WithContext(ctx).Model(&model.Article{})
+	
+	if status != nil {
+		query = query.Where("status = ?", *status)
+	}
+	
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	
+	offset := (page - 1) * pageSize
+	err := query. 
+		Preload("Category").  // ✅ 预加载分类
+		Preload("Tags").      // ✅ 预加载标签
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&articles).Error
+	
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	return articles, total, nil
+}
+
+// UpdateWithTags 更新文章并关联标签
+func (r *ArticleRepository) UpdateWithTags(ctx context.Context, article *model.Article, tagIDs []uint) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm. DB) error {
+		// 1. 更新文章基本信息
+		if err := tx.Save(article).Error; err != nil {
+			return err
+		}
+		
+		// 2. 清空现有标签关联
+		if err := tx. Model(article).Association("Tags").Clear(); err != nil {
+			return err
+		}
+		
+		// 3. 如果有新标签，添加关联
+		if len(tagIDs) > 0 {
+			var tags []model.Tag
+			if err := tx.Where("id IN ? ", tagIDs).Find(&tags).Error; err != nil {
+				return err
+			}
+			if err := tx.Model(article).Association("Tags").Append(tags); err != nil {
+				return err
+			}
+		}
+		
+		return nil
+	})
+}
