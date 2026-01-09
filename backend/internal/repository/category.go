@@ -67,3 +67,18 @@ func (r *CategoryRepository) CountArticles(ctx context.Context, categoryID uint)
 		Count(&count).Error
 	return count, err
 }
+
+// ListWithArticleCount 查询分类列表（带文章数量统计）
+func (r *CategoryRepository) ListWithArticleCount(ctx context.Context) ([]map[string]interface{}, error) {
+	var results []map[string]interface{}
+	
+	err := r.db.WithContext(ctx).
+		Model(&model.Category{}).
+		Select("categories.*, COUNT(articles.id) as article_count").
+		Joins("LEFT JOIN articles ON articles.category_id = categories.id").
+		Group("categories.id").
+		Order("categories.created_at DESC").
+		Scan(&results).Error
+	
+	return results, err
+}

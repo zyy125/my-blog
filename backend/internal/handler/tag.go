@@ -118,3 +118,17 @@ func (h *TagHandler) Delete(c *gin.Context) {
 	
 	response. SuccessWithMsg(c, nil, "删除成功")
 }
+
+// ListWithCount 获取标签列表（带文章统计）
+// GET /api/tags/stats
+func (h *TagHandler) ListWithCount(c *gin.Context) {
+	ctx := context.Background()
+	
+	tags, err := h.service.ListWithCount(ctx)
+	if err != nil {
+		response.ServerError(c, "查询失败:  "+err.Error())
+		return
+	}
+	
+	response.Success(c, tags)
+}

@@ -101,3 +101,8 @@ func (s *CategoryService) Delete(ctx context.Context, id uint) error {
 	// 3. 删除
 	return s.repo.Delete(ctx, id)
 }
+
+// ListWithCount 获取分类列表（带文章数量）
+func (s *CategoryService) ListWithCount(ctx context.Context) ([]map[string]interface{}, error) {
+	return s.repo.ListWithArticleCount(ctx)
+}

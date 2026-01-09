@@ -15,52 +15,54 @@ func SetupRouter() *gin.Engine {
 	// ========== 初始化依赖 ==========
 	// Repository 层
 	articleRepo := repository.NewArticleRepository(database.DB)
-	categoryRepo := repository. NewCategoryRepository(database.DB)  // ✅ 新增
-	tagRepo := repository.NewTagRepository(database.DB)            // ✅ 新增
+	categoryRepo := repository. NewCategoryRepository(database.DB)
+	tagRepo := repository. NewTagRepository(database.DB)
 	
-	// Service 层
-	articleService := service.NewArticleService(articleRepo)
-	categoryService := service.NewCategoryService(categoryRepo)    // ✅ 新增
-	tagService := service.NewTagService(tagRepo)                   // ✅ 新增
+	// Service 层（注意：ArticleService 现在需要三个依赖）
+	articleService := service.NewArticleService(articleRepo, tagRepo, categoryRepo)
+	categoryService := service.NewCategoryService(categoryRepo)
+	tagService := service.NewTagService(tagRepo)
 	
 	// Handler 层
 	articleHandler := handler.NewArticleHandler(articleService)
-	categoryHandler := handler.NewCategoryHandler(categoryService) // ✅ 新增
-	tagHandler := handler.NewTagHandler(tagService)                // ✅ 新增
+	categoryHandler := handler. NewCategoryHandler(categoryService)
+	tagHandler := handler.NewTagHandler(tagService)
 	
 	// ========== 公开 API ==========
 	api := r.Group("/api")
 	{
 		// 文章相关
-		api.GET("/articles", articleHandler.List)
-		api.GET("/articles/: id", articleHandler.GetByID)
+		api.GET("/articles", articleHandler.List)           // 支持多种筛选
+		api.GET("/articles/:id", articleHandler.GetByID)    // 详情（带关联）
 		
-		// ✅ 分类相关（公开）
+		// 分类相关
 		api.GET("/categories", categoryHandler.List)
-		api.GET("/categories/:id", categoryHandler.GetByID)
+		api.GET("/categories/stats", categoryHandler.ListWithCount) // ✅ 新增：带统计
+		api.GET("/categories/: id", categoryHandler.GetByID)
 		
-		// ✅ 标签相关（公开）
+		// 标签相关
 		api.GET("/tags", tagHandler.List)
-		api.GET("/tags/:id", tagHandler.GetByID)
+		api.GET("/tags/stats", tagHandler.ListWithCount)            // ✅ 新增：带统计
+		api. GET("/tags/:id", tagHandler.GetByID)
 	}
 	
 	// ========== 管理 API ==========
 	admin := r.Group("/api/admin")
 	{
 		// 文章管理
-		admin.POST("/articles", articleHandler.Create)
-		admin.PUT("/articles/:id", articleHandler. Update)
+		admin.POST("/articles", articleHandler.Create)        // 支持标签关联
+		admin.PUT("/articles/:id", articleHandler.Update)     // 支持标签更新
 		admin.DELETE("/articles/:id", articleHandler.Delete)
 		
-		// ✅ 分类管理
+		// 分类管理
 		admin.POST("/categories", categoryHandler.Create)
 		admin.PUT("/categories/:id", categoryHandler.Update)
-		admin.DELETE("/categories/:id", categoryHandler. Delete)
+		admin.DELETE("/categories/:id", categoryHandler.Delete)
 		
-		// ✅ 标签管理
+		// 标签管理
 		admin.POST("/tags", tagHandler.Create)
 		admin.PUT("/tags/:id", tagHandler.Update)
-		admin.DELETE("/tags/:id", tagHandler.Delete)
+		admin.DELETE("/tags/:id", tagHandler. Delete)
 	}
 	
 	return r

@@ -64,3 +64,18 @@ func (r *TagRepository) Update(ctx context.Context, tag *model. Tag) error {
 func (r *TagRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&model.Tag{}, id).Error
 }
+
+// ListWithArticleCount 查询标签列表（带文章数量统计）
+func (r *TagRepository) ListWithArticleCount(ctx context.Context) ([]map[string]interface{}, error) {
+	var results []map[string]interface{}
+	
+	err := r.db.WithContext(ctx).
+		Model(&model.Tag{}).
+		Select("tags.*, COUNT(article_tags.article_id) as article_count").
+		Joins("LEFT JOIN article_tags ON article_tags.tag_id = tags.id").
+		Group("tags.id").
+		Order("tags.created_at DESC").
+		Scan(&results).Error
+	
+	return results, err
+}

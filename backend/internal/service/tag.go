@@ -87,3 +87,8 @@ func (s *TagService) Delete(ctx context.Context, id uint) error {
 	// 因为多对多关系，删除标签时会自动删除关联关系（CASCADE）
 	return s.repo.Delete(ctx, id)
 }
+
+// ListWithCount 获取标签列表（带文章数量）
+func (s *TagService) ListWithCount(ctx context.Context) ([]map[string]interface{}, error) {
+	return s.repo. ListWithArticleCount(ctx)
+}

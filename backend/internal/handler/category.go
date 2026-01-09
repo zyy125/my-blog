@@ -118,3 +118,17 @@ func (h *CategoryHandler) Delete(c *gin.Context) {
 	
 	response. SuccessWithMsg(c, nil, "删除成功")
 }
+
+// ListWithCount 获取分类列表（带文章统计）
+// GET /api/categories/stats
+func (h *CategoryHandler) ListWithCount(c *gin. Context) {
+	ctx := context.Background()
+	
+	categories, err := h.service.ListWithCount(ctx)
+	if err != nil {
+		response. ServerError(c, "查询失败: "+err.Error())
+		return
+	}
+	
+	response.Success(c, categories)
+}

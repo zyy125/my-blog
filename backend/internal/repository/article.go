@@ -152,3 +152,88 @@ func (r *ArticleRepository) UpdateWithTags(ctx context.Context, article *model.A
 		return nil
 	})
 }
+
+// ListByCategory 根据分类查询文章
+func (r *ArticleRepository) ListByCategory(ctx context.Context, categoryID uint, page, pageSize int) ([]*model.Article, int64, error) {
+	var articles []*model.Article
+	var total int64
+	
+	query := r.db.WithContext(ctx).
+		Model(&model.Article{}).
+		Where("category_id = ?  AND status = ? ", categoryID, 1) // 只查已发布的
+	
+	// 统计总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	
+	// 分页查询
+	offset := (page - 1) * pageSize
+	err := query. 
+		Preload("Category").
+		Preload("Tags").
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&articles).Error
+	
+	return articles, total, err
+}
+
+// ListByTag 根据标签查询文章
+func (r *ArticleRepository) ListByTag(ctx context.Context, tagID uint, page, pageSize int) ([]*model.Article, int64, error) {
+	var articles []*model.Article
+	var total int64
+	
+	// 多对多关系的查询：需要 JOIN 中间表
+	query := r. db.WithContext(ctx).
+		Model(&model.Article{}).
+		Joins("JOIN article_tags ON articles.id = article_tags.article_id").
+		Where("article_tags. tag_id = ? AND articles.status = ?", tagID, 1)
+	
+	// 统计总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	
+	// 分页查询
+	offset := (page - 1) * pageSize
+	err := query. 
+		Preload("Category").
+		Preload("Tags").
+		Order("articles.created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&articles).Error
+	
+	return articles, total, err
+}
+
+// Search 搜索文章（标题或内容）
+func (r *ArticleRepository) Search(ctx context.Context, keyword string, page, pageSize int) ([]*model.Article, int64, error) {
+	var articles []*model.Article
+	var total int64
+	
+	// LIKE 模糊查询
+	searchPattern := "%" + keyword + "%"
+	query := r.db.WithContext(ctx).
+		Model(&model.Article{}).
+		Where("(title LIKE ? OR content LIKE ?) AND status = ?", searchPattern, searchPattern, 1)
+	
+	// 统计总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	
+	// 分页查询
+	offset := (page - 1) * pageSize
+	err := query.
+		Preload("Category").
+		Preload("Tags").
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&articles).Error
+	
+	return articles, total, err
+}
