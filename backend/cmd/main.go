@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gin-gonic/gin"
 	"github.com/zyy125/my-blog/backend/config"
 	"github.com/zyy125/my-blog/backend/internal/model"
 	"github.com/zyy125/my-blog/backend/internal/pkg/database"
+	"github.com/zyy125/my-blog/backend/internal/router"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -18,29 +19,24 @@ func main() {
 	fmt.Println("✅ 配置加载成功")
 
 	// ========== 2. 初始化数据库 ==========
-	dsn := config.App.Database. DSN()
+	dsn := config.App.Database.DSN()
 	if err := database.InitDB(dsn); err != nil {
-		log. Fatalf("数据库初始化失败: %v", err)
+		log.Fatalf("数据库初始化失败: %v", err)
 	}
 	fmt.Println("✅ 数据库连接成功")
 
-	// ========== 3. 自动迁移（创建表）==========
-	if err := database. DB.AutoMigrate(&model.Article{}); err != nil {
+	// ========== 3. 自动迁移 ==========
+	if err := database.DB.AutoMigrate(&model.Article{}); err != nil {
 		log.Fatalf("数据表迁移失败: %v", err)
 	}
 	fmt.Println("✅ 数据表迁移成功")
 
-	// ========== 4. 设置 Gin ==========
-	gin.SetMode(config.App.Server.Mode)
-	r := gin.Default()
-
-	// 测试路由
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "pong"})
-	})
+	// ========== 4. 设置路由 ==========
+	gin.SetMode(config.App. Server.Mode)
+	r := router.SetupRouter()
 
 	// ========== 5. 启动服务器 ==========
-	fmt.Printf("🚀 服务器启动在 http://localhost%s\n", config.App. Server.Port)
+	fmt.Printf("🚀 服务器启动在 http://localhost%s\n", config.App.Server. Port)
 	if err := r.Run(config.App.Server.Port); err != nil {
 		log.Fatalf("服务器启动失败: %v", err)
 	}
