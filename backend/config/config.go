@@ -56,3 +56,14 @@ func LoadConfig(configPath string) error {
 	
 	return nil
 }
+
+// DSN 生成 MySQL 连接字符串
+func (db *DatabaseConfig) DSN() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		db.Username,
+		db.Password,
+		db.Host,
+		db.Port,
+		db.DBName,
+	)
+}
