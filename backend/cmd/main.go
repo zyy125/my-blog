@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/zyy125/my-blog/backend/config"
-	"github.com/zyy125/my-blog/backend/internal/model"
 	"github.com/zyy125/my-blog/backend/internal/pkg/database"
 	"github.com/zyy125/my-blog/backend/internal/router"
 	"github.com/gin-gonic/gin"
@@ -26,7 +25,7 @@ func main() {
 	fmt.Println("✅ 数据库连接成功")
 
 	// ========== 3. 自动迁移 ==========
-	if err := database.DB.AutoMigrate(&model.Article{}); err != nil {
+	if err := database.AutoMigrate(); err != nil {
 		log.Fatalf("数据表迁移失败: %v", err)
 	}
 	fmt.Println("✅ 数据表迁移成功")
@@ -36,7 +35,7 @@ func main() {
 	r := router.SetupRouter()
 
 	// ========== 5. 启动服务器 ==========
-	fmt.Printf("🚀 服务器启动在 http://localhost%s\n", config.App.Server. Port)
+	fmt.Printf("🚀 服务器启动在 http://localhost%s\n", config.App.Server.Port)
 	if err := r.Run(config.App.Server.Port); err != nil {
 		log.Fatalf("服务器启动失败: %v", err)
 	}
