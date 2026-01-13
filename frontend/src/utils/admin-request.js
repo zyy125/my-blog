@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 
-const ADMIN_TOKEN = 'sk_blog_admin_please_change_this_token';
+const ADMIN_TOKEN = 'sk_blog_admin_change_this_to_random_string';
 
 const adminRequest = axios.create({
   baseURL: '',
