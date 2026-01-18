@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -14,8 +15,8 @@ type Config struct {
 
 // ServerConfig 服务器配置
 type ServerConfig struct {
-	Port string `mapstructure:"port"`  // 服务端口
-	Mode string `mapstructure:"mode"`  // 运行模式:  debug/release
+	Port string `mapstructure:"port"` // 服务端口
+	Mode string `mapstructure:"mode"` // 运行模式: debug/release
 }
 
 // DatabaseConfig 数据库配置
@@ -29,8 +30,8 @@ type DatabaseConfig struct {
 
 // AdminConfig 管理员配置
 type AdminConfig struct {
-	Token      string   `mapstructure:"token"`       // 管理员Token
-	AllowedIPs []string `mapstructure:"allowed_ips"` // IP白名单（可选）
+	SecretKey        string `mapstructure:"secret_key"`         // 管理密钥
+	TokenExpireHours int    `mapstructure:"token_expire_hours"` // Token过期时间（小时）
 }
 
 // App 全局配置实例
@@ -40,20 +41,20 @@ var App *Config
 func LoadConfig(configPath string) error {
 	// 1. 创建 Viper 实例
 	v := viper.New()
-	
+
 	// 2. 设置配置文件路径和名称
 	v.SetConfigFile(configPath)
-	
+
 	// 3. 读取配置文件
 	if err := v.ReadInConfig(); err != nil {
-		return fmt.Errorf("读取配置文件失败:  %w", err)
+		return fmt.Errorf("读取配置文件失败: %w", err)
 	}
-	
+
 	// 4. 将配置解析到结构体
 	if err := v.Unmarshal(&App); err != nil {
 		return fmt.Errorf("解析配置文件失败: %w", err)
 	}
-	
+
 	return nil
 }
 

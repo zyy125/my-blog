@@ -17,10 +17,16 @@ const routes = [
       { path: 'about', component: () => import('@/views/About.vue') }
     ]
   },
+  // Admin Login
+  {
+    path: '/admin/login',
+    component: () => import('@/views/admin/Login.vue')
+  },
   // Admin Routes
   {
     path: '/admin',
     component: AdminLayout,
+    meta: { requiresAuth: true }, // 需要认证
     children: [
       { path: '', redirect: '/admin/dashboard' },
       { path: 'dashboard', component: () => import('@/views/admin/Dashboard.vue') },
@@ -38,5 +44,32 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    const token = localStorage.getItem('admin_token');
+    const expiresAt = localStorage.getItem('token_expires_at');
+    
+    if (!token) {
+      next({
+        path: '/admin/login',
+        query: { redirect: to.fullPath }
+      });
+    } else if (expiresAt && parseInt(expiresAt) * 1000 < Date.now()) {
+      // Token 过期
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('token_expires_at');
+      next({
+        path: '/admin/login',
+        query: { redirect: to.fullPath }
+      });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+});
 
 export default router
