@@ -1,104 +1,206 @@
 :root {
-  /* Modern Color Palette */
-  --primary-color: #409eff;
-  --secondary-color: #8e44ad;
-  --text-main: #2c3e50;
-  --text-secondary: #606266;
-  --bg-color: #f0f2f5;
-  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --border-color: #ebeef5;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* ==========================================================================
+     Semantic Color System
+     ========================================================================== */
+
+  /* --- Light Theme (Default) --- */
   
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  line-height: 1.6;
-  font-weight: 400;
+  /* Brand Colors */
+  --color-primary: #409eff;
+  --color-primary-light: #ecf5ff;
+  --color-primary-dark: #337ecc;
+  --color-success: #67c23a;
+  --color-warning: #e6a23c;
+  --color-danger: #f56c6c;
+  --color-info: #909399;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Legacy & Component Variable Mappings */
+  --primary-color: var(--color-primary);
+  --primary-color-rgb: 64, 158, 255;
+  --text-main: var(--text-primary);
+  --secondary-color: #6c5ce7;
 
-  --transition-fast: 0.2s cubic-bezier(0.25, 0.8, 0.5, 1);
-  --transition-normal: 0.4s cubic-bezier(0.25, 0.8, 0.5, 1);
+  /* Background Colors */
+  --bg-body: #f0f2f5;          /* Main Page Background */
+  --bg-container: #ffffff;     /* Card/Content Background */
+  --bg-sidebar: #ffffff;       /* Sidebar Background */
+  --bg-header: #ffffff;        /* Header Background */
+  --bg-hover: #f5f7fa;         /* Hover State Background */
+  --bg-dialog: #ffffff;        /* Dialog Background */
+  --card-bg: rgba(255, 255, 255, 0.8); /* Glass Card Background */
+
+  /* Text Colors */
+  --text-primary: #303133;     /* Main Text */
+  --text-regular: #606266;     /* Secondary Text */
+  --text-secondary: #909399;   /* Placeholder/Disabled Text */
+  --text-placeholder: #a8abb2;
+
+  /* Border Colors */
+  --border-base: #dcdfe6;
+  --border-light: #e4e7ed;
+  --border-lighter: #ebeef5;
+
+  /* Shadows */
+  --shadow-base: 0 1px 4px rgba(0, 21, 41, 0.08);
+  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-dialog: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+  /* Layout Sizes */
+  --sidebar-width: 220px;
+  --sidebar-width-collapsed: 64px;
+  --header-height: 60px;
+  
+  /* Transitions */
+  --transition-all: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
+/* --- Dark Theme Overrides --- */
 html.dark {
-  --text-main: #e5eaf3;
+  /* Brand Colors (Adjusted for Dark Mode) */
+  --color-primary-light: #1d2c40; /* Darker tint for backgrounds */
+  --color-primary-dark: #66b1ff;
+
+  /* Background Colors */
+  --bg-body: #0d0d0d;
+  --bg-container: #141414;
+  --bg-sidebar: #141414;
+  --bg-header: #141414;
+  --bg-hover: #1f1f1f;
+  --bg-dialog: #1a1a1a;
+  --card-bg: #191919E0; /* Custom Dark Glass Background */
+
+  /* Text Colors */
+  --text-primary: #e6e6e6;
+  --text-regular: #cfd3dc;
   --text-secondary: #a3a6ad;
-  --bg-color: #121212;
-  --bg-gradient: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
-  --card-bg: rgba(30, 30, 30, 0.8);
-  --border-color: #333;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 10px 20px rgba(0,0,0,0.6);
+
+  /* Border Colors */
+  --border-base: #4c4d4f;
+  --border-light: #363637;
+  --border-lighter: #2b2b2c;
+
+  /* Shadows */
+  --shadow-base: 0 1px 4px rgba(0, 0, 0, 0.6);
+  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.8);
+  --shadow-dialog: 0 8px 24px rgba(0, 0, 0, 0.9);
+}
+
+/* ==========================================================================
+   Global Resets & Typography
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  display: block;
-  min-width: 320px;
-  min-height: 100vh;
-  background: var(--bg-gradient);
-  background-attachment: fixed;
-  color: var(--text-main);
-  transition: background 0.5s ease, color 0.5s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 #app {
-  width: 100%;
+  min-height: 100vh;
+  width: 100vw;
 }
 
 a {
-  font-weight: 500;
-  color: var(--primary-color);
-  text-decoration: inherit;
-  transition: color var(--transition-fast);
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition-all);
 }
 
 a:hover {
-  color: var(--secondary-color);
+  color: var(--color-primary-dark);
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-main);
-  margin-top: 0;
+/* ==========================================================================
+   Element Plus Variable Overrides (Connecting to our CSS Variables)
+   ========================================================================== */
+html {
+  --el-color-primary: var(--color-primary);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-regular);
+  --el-text-color-secondary: var(--text-secondary);
+  --el-bg-color: var(--bg-container);
+  --el-bg-color-overlay: var(--bg-container);
+  --el-border-color: var(--border-base);
+  --el-border-color-light: var(--border-light);
+  --el-border-color-lighter: var(--border-lighter);
+  --el-fill-color-blank: var(--bg-container);
 }
 
+html.dark {
+  --el-bg-color: var(--bg-container);
+  --el-bg-color-overlay: var(--bg-dialog);
+  --el-fill-color-blank: var(--bg-container);
+  --el-fill-color-light: var(--bg-hover);
+  --el-mask-color: rgba(0, 0, 0, 0.8);
+}
+
+/* ==========================================================================
+   Global Animations
+   ========================================================================== */
+
+/* Unified Scale-In Animation */
+.anim-scale-in {
+  opacity: 0;
+  animation: scaleIn 3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Helper to prevent FOUC (Flash of Unstyled Content) before animation starts */
+.anim-hidden {
+    opacity: 0;
+}
+
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
-::-webkit-scrollbar-track {
-  background: transparent; 
-}
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(150,150,150,0.4); 
-  border-radius: 4px;
+  background: rgba(144, 147, 153, 0.3);
+  border-radius: 3px;
 }
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(150,150,150,0.6); 
+  background: rgba(144, 147, 153, 0.5);
 }
 
-.fade-in-up {
-    animation: fadeInUp 1s ease-out forwards;
+/* Markdown Editor Tweaks for Dark Mode */
+html.dark .v-md-editor {
+    background-color: var(--bg-container) !important;
+    border-color: var(--border-light) !important;
 }
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+html.dark .v-md-editor__toolbar {
+    background-color: var(--bg-hover) !important;
+    border-bottom-color: var(--border-light) !important;
 }
-
-html.dark .el-menu {
-    background: transparent;
-    border-bottom: 1px solid var(--border-color);
+html.dark .v-md-editor__editor-wrapper {
+    background-color: var(--bg-container) !important;
 }
-.el-menu {
-   border-right: none;
-}
-.el-card {
-    border: none !important;
+html.dark .v-md-editor textarea {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
 }

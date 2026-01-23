@@ -1,74 +1,107 @@
 <template>
-  <el-card>
-    <div class="toolbar">
-      <el-button type="primary" :icon="Plus" @click="handleAdd">新建分类</el-button>
-    </div>
+  <div class="page-container">
+    <el-card class="box-card" shadow="never">
+      <template #header>
+        <div class="card-header">
+          <div class="left">
+            <h3 class="title">分类管理</h3>
+          </div>
+          <div class="right">
+            <el-button type="primary" :icon="Plus" @click="handleCreate">新建分类</el-button>
+          </div>
+        </div>
+      </template>
 
-    <el-table :data="categories" style="width: 100%; margin-top: 20px" v-loading="loading">
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="name" label="名称" width="200" />
-       <el-table-column prop="description" label="描述" />
-      <el-table-column prop="article_count" label="文章数" width="100" />
-      <el-table-column label="操作" width="180">
-        <template #default="{ row }">
-          <el-button size="small" type="primary" link @click="handleEdit(row)">编辑</el-button>
-          <el-popconfirm title="确定删除吗? 删除前请确保该分类下无文章。" @confirm="handleDelete(row)">
-            <template #reference>
-              <el-button size="small" type="danger" link>删除</el-button>
+      <el-table :data="tableData" v-loading="loading" style="width: 100%">
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="name" label="名称" width="200">
+            <template #default="{ row }">
+                <span class="category-name">{{ row.name }}</span>
             </template>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
+        </el-table-column>
+        <el-table-column prop="article_count" label="文章数" width="120">
+            <template #default="{ row }">
+                <el-tag type="info" effect="plain" round>{{ row.article_count || 0 }}</el-tag>
+            </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="150" align="right">
+          <template #default="{ row }">
+            <el-button size="small" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
+            <el-popconfirm title="确定删除该分类吗？" @confirm="handleDelete(row)">
+              <template #reference>
+                <el-button size="small" type="danger" :icon="Delete">删除</el-button>
+              </template>
+            </el-popconfirm>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
     <!-- Dialog -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑分类' : '新建分类'" width="500px">
-      <el-form :model="form" ref="formRef" :rules="rules" label-width="60px">
-        <el-form-item label="名称" prop="name">
+    <el-dialog 
+        v-model="dialogVisible" 
+        :title="dialogTitle" 
+        width="500px" 
+        destroy-on-close
+        @closed="resetForm"
+    >
+      <el-form 
+        ref="formRef" 
+        :model="form" 
+        :rules="rules" 
+        label-width="80px"
+        label-position="top"
+      >
+        <el-form-item label="分类名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入分类名称" />
         </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="form.description" type="textarea" placeholder="请输入分类描述" />
+        <el-form-item label="描述" prop="desc">
+            <el-input v-model="form.desc" type="textarea" placeholder="可选" />
         </el-form-item>
       </el-form>
+      
       <template #footer>
-        <span class="dialog-footer">
+        <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
           <el-button type="primary" @click="submitForm" :loading="submitting">确定</el-button>
-        </span>
+        </div>
       </template>
     </el-dialog>
-  </el-card>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { getCategoriesStats, createCategory, updateCategory, deleteCategory } from '@/api/category';
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Edit, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
-const categories = ref([]);
+// Data
 const loading = ref(false);
+const tableData = ref([]);
 const dialogVisible = ref(false);
-const isEdit = ref(false);
 const submitting = ref(false);
+const formRef = ref(null);
+const isEdit = ref(false);
 const currentId = ref(null);
 
 const form = reactive({
-  name: '',
-  description: ''
+    name: '',
+    desc: ''
 });
-const formRef = ref(null);
 
 const rules = {
-  name: [{ required: true, message: '请输入名称', trigger: 'blur' }]
+    name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 };
 
+const dialogTitle = computed(() => isEdit.value ? '编辑分类' : '新建分类');
+
+// Methods
 const fetchData = async () => {
     loading.value = true;
     try {
         const res = await getCategoriesStats();
-        categories.value = Array.isArray(res) ? res : (res.list || []);
+        tableData.value = res;
     } catch (e) {
         console.error(e);
     } finally {
@@ -76,10 +109,11 @@ const fetchData = async () => {
     }
 };
 
-const handleAdd = () => {
+const handleCreate = () => {
     isEdit.value = false;
+    currentId.value = null;
     form.name = '';
-    form.description = '';
+    form.desc = '';
     dialogVisible.value = true;
 };
 
@@ -87,34 +121,32 @@ const handleEdit = (row) => {
     isEdit.value = true;
     currentId.value = row.id;
     form.name = row.name;
-    form.description = row.description;
+    form.desc = ''; // Backend doesn't return desc usually in list, ignore for now
     dialogVisible.value = true;
 };
 
 const handleDelete = async (row) => {
-    if (row.article_count > 0) {
-        ElMessage.warning('该分类下有文章，无法删除');
-        return;
-    }
     try {
         await deleteCategory(row.id);
         ElMessage.success('删除成功');
         fetchData();
     } catch (e) {
+        console.error(e);
     }
 };
 
 const submitForm = async () => {
     if (!formRef.value) return;
+    
     await formRef.value.validate(async (valid) => {
         if (valid) {
             submitting.value = true;
             try {
                 if (isEdit.value) {
-                    await updateCategory(currentId.value, form);
+                    await updateCategory(currentId.value, { name: form.name });
                     ElMessage.success('更新成功');
                 } else {
-                    await createCategory(form);
+                    await createCategory({ name: form.name });
                     ElMessage.success('创建成功');
                 }
                 dialogVisible.value = false;
@@ -128,13 +160,35 @@ const submitForm = async () => {
     });
 };
 
+const resetForm = () => {
+    if (formRef.value) formRef.value.resetFields();
+};
+
 onMounted(() => {
     fetchData();
 });
 </script>
 
 <style scoped>
-.toolbar {
-    margin-bottom: 20px;
+.page-container {
+    padding: 0;
+}
+.box-card {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+.category-name {
+    font-weight: 500;
 }
 </style>

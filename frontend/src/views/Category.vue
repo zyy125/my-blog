@@ -62,14 +62,17 @@ const fetchCategoryInfo = async () => {
     } catch(e) {}
 };
 
-const fetchData = async () => {
+const fetchData = async (page) => {
+    if (typeof page === 'number') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     loading.value = true;
     try {
         const res = await getArticles({
             page: currentPage.value,
             page_size: pageSize.value,
             status: 1,
-            category_id: route.params.id
+            category_id: parseInt(route.params.id)
         });
         articles.value = res.list;
         total.value = res.total;

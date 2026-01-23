@@ -31,14 +31,12 @@ func (s *CommentService) Create(ctx context.Context, comment *model.Comment) err
 	if comment.ArticleID == 0 {
 		return errors.New("文章ID不能为空")
 	}
-	if comment. Nickname == "" {
+	if comment.Nickname == "" {
 		return errors.New("昵称不能为空")
 	}
-	if comment.Email == "" {
-		return errors.New("邮箱不能为空")
-	}
+	// 邮箱不再是必填项，允许为空
 	if comment.Content == "" {
-		return errors. New("评论内容不能为空")
+		return errors.New("评论内容不能为空")
 	}
 	
 	// 2. 验证文章是否存在

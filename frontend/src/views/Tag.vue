@@ -41,12 +41,12 @@ import { Calendar, View } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
-const articles = ref([]);
-const loading = ref(false);
 const total = ref(0);
 const pageSize = ref(10);
 const currentPage = ref(1);
 const tagName = ref('');
+const loading = ref(false);
+const articles = ref([]);
 
 const fetchTagInfo = async () => {
     try {
@@ -58,14 +58,17 @@ const fetchTagInfo = async () => {
     } catch(e) {}
 };
 
-const fetchData = async () => {
+const fetchData = async (page) => {
+    if (typeof page === 'number') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     loading.value = true;
     try {
         const res = await getArticles({
             page: currentPage.value,
             page_size: pageSize.value,
             status: 1,
-            tag_id: route.params.id
+            tag_id: parseInt(route.params.id)
         });
         articles.value = res.list;
         total.value = res.total;

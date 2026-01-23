@@ -4,45 +4,23 @@
       <div class="main-column">
         <!-- Hero / Welcome Section -->
         <div class="hero-section fade-in-up">
-            <h1 class="hero-title">Welcome to My Blog</h1>
-            <p class="hero-subtitle">Sharing thoughts on Tech, Life, and Code.</p>
+            <h1 class="hero-title">欢迎来到我的博客</h1>
         </div>
 
         <div class="article-list">
           <div class="list-container">
-            <el-card 
+            <ArticleCard 
               v-for="(article, index) in articles" 
               :key="article.id" 
-              class="article-card scroll-reveal" 
-              shadow="never" 
+              :article="article"
+              :reversed="index % 2 !== 0"
+              class="anim-scale-in" 
+              :style="{ animationDelay: `${index * 0.2}s` }"
               @click="goDetail(article.id)"
-              :ref="el => setArticleRef(el, index)"
-            >
-              <div class="article-content">
-                <div class="article-header">
-                     <el-tag v-if="article.category" size="small" effect="plain" class="category-tag">{{ article.category.name }}</el-tag>
-                     <span class="date">{{ formatDate(article.created_at) }}</span>
-                </div>
-                <h2 class="article-title">{{ article.title }}</h2>
-                <p class="article-summary">{{ article.summary }}</p>
-                <div class="article-footer">
-                    <span class="read-more">Read Article <el-icon><ArrowRight /></el-icon></span>
-                    <span class="views"><el-icon><View /></el-icon> {{ article.views }} views</span>
-                </div>
-              </div>
-              <div class="article-cover" v-if="article.cover_img">
-                <el-image :src="article.cover_img" fit="cover" loading="lazy" class="cover-image">
-                    <template #error>
-                        <div class="image-slot">
-                            <el-icon><Picture /></el-icon>
-                        </div>
-                    </template>
-                </el-image>
-              </div>
-            </el-card>
+            />
           </div>
 
-          <el-empty v-if="articles.length === 0" description="No articles found" />
+          <el-empty v-if="articles.length === 0" description="暂无文章" />
 
           <div class="pagination">
             <el-pagination
@@ -58,77 +36,120 @@
       </div>
     </el-col>
 
-    <el-col :span="6" :xs="0">
+    <el-col :span="6" :xs="6">
       <div class="sidebar">
-          <!-- Profile Card -->
-          <el-card class="sidebar-card profile-card" shadow="never">
-              <div class="profile-header">
-                  <div class="avatar-placeholder">Me</div>
-                  <h3 class="profile-name">Zhuyin</h3>
-                  <p class="profile-bio">Golang & Vue Developer. Minimalist.</p>
-              </div>
-          </el-card>
+        <!-- Profile Card -->
+        <ProfileCard 
+            class="sidebar-card anim-scale-in" 
+            style="animation-delay: 0.2s"
+            :articles="total" 
+            :categories="categories.length" 
+            :tags="tags.length"
+        />
 
-          <el-card class="sidebar-card" shadow="never">
-            <template #header>
-              <div class="card-header">
-                <span>🗂 Categories</span>
-              </div>
-            </template>
-            <div class="category-list">
-              <div v-for="cat in categories" :key="cat.id" class="category-item" @click="goCategory(cat.id)">
-                <span>{{ cat.name }}</span>
-                <span class="count-badge">{{ cat.article_count }}</span>
-              </div>
+        <!-- Latest Articles Card -->
+        <GlassCard class="sidebar-card anim-scale-in" style="animation-delay: 0.4s" hover-effect v-if="latestArticles.length > 0">
+          <div class="card-header">
+            <span><el-icon><Timer /></el-icon> 最新文章</span>
+          </div>
+          <div class="latest-list">
+            <div v-for="article in latestArticles" :key="article.id" class="latest-item" @click="goDetail(article.id)">
+              <div class="latest-title">{{ article.title }}</div>
+              <div class="latest-date">{{ formatDate(article.created_at) }}</div>
             </div>
-          </el-card>
+          </div>
+        </GlassCard>
 
-          <el-card class="sidebar-card mt-24" shadow="never">
-            <template #header>
-              <div class="card-header">
-                <span>🏷 Tags</span>
-              </div>
-            </template>
-            <div class="tag-cloud">
-              <span
-                v-for="tag in tags" 
-                :key="tag.id" 
-                class="tag-item" 
-                @click="goTag(tag.id)"
-              >
-                #{{ tag.name }}
-              </span>
+        <!-- Site Info Card -->
+        <SiteInfoCard :info="siteInfo" class="sidebar-card anim-scale-in" style="animation-delay: 0.3s" />
+
+        <GlassCard class="sidebar-card anim-scale-in" style="animation-delay: 0.8s" hover-effect>
+          <div class="card-header">
+            <span>🗂 分类</span>
+          </div>
+          <div class="category-list">
+            <div v-for="cat in categories" :key="cat.id" class="category-item" @click="goCategory(cat.id)">
+              <span>{{ cat.name }}</span>
+              <span class="count-badge">{{ cat.article_count }}</span>
             </div>
-          </el-card>
+          </div>
+        </GlassCard>
+
+        <GlassCard class="sidebar-card anim-scale-in" style="animation-delay: 1s" hover-effect>
+          <div class="card-header">
+            <span>🏷 标签</span>
+          </div>
+          <div class="tag-cloud">
+            <span
+              v-for="tag in tags" 
+              :key="tag.id" 
+              class="tag-item" 
+              @click="goTag(tag.id)"
+            >
+              #{{ tag.name }}
+            </span>
+          </div>
+        </GlassCard>
+
+        <!-- Archives Card -->
+        <GlassCard class="sidebar-card anim-scale-in" style="animation-delay: 1.2s" hover-effect>
+          <div class="card-header">
+            <span><el-icon><Collection /></el-icon> 归档</span>
+          </div>
+          <div class="category-list">
+            <div v-for="arc in archives" :key="arc.date" class="category-item" @click="goArchive(arc.rawDate)">
+              <span>{{ arc.date }}</span>
+              <span class="count-badge">{{ arc.count }}</span>
+            </div>
+          </div>
+        </GlassCard>
       </div>
     </el-col>
   </el-row>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { getArticles } from '@/api/article';
 import { getCategoriesStats } from '@/api/category';
 import { getTagsStats } from '@/api/tag';
 import dayjs from 'dayjs';
-import { Calendar, View, ArrowRight, Picture } from '@element-plus/icons-vue';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { Collection, Timer } from '@element-plus/icons-vue';
+import ArticleCard from '@/components/ArticleCard.vue';
+import ProfileCard from '@/components/ProfileCard.vue';
+import SiteInfoCard from '@/components/SiteInfoCard.vue';
+import GlassCard from '@/components/GlassCard.vue';
+
+dayjs.extend(relativeTime);
 
 const router = useRouter();
 const articles = ref([]);
+const latestArticles = ref([]);
 const total = ref(0);
-const pageSize = ref(10);
+const pageSize = ref(8);
 const currentPage = ref(1);
 
 const categories = ref([]);
 const tags = ref([]);
+const archives = ref([]);
+const siteInfo = ref({
+    articleCount: 0,
+    runningTime: '',
+    wordCount: '0',
+    visitorCount: '12,345',
+    totalViews: '0',
+    lastUpdate: '-'
+});
 
 // Animation Observer
 const articleRefs = ref([]);
 let observer = null;
 
 const setArticleRef = (el, index) => {
-    if (el) articleRefs.value[index] = el.$el; // el is component instance, $el is DOM
+    // ArticleCard component root element
+    if (el) articleRefs.value[index] = el.$el; 
 };
 
 const initObserver = () => {
@@ -138,12 +159,12 @@ const initObserver = () => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('is-visible');
-                observer.unobserve(entry.target); // Only animate once
+                observer.unobserve(entry.target); 
             }
         });
     }, {
-        threshold: 0.1, // Trigger when 10% visible
-        rootMargin: '50px' // Trigger slightly before
+        threshold: 0.1, 
+        rootMargin: '50px' 
     });
 
     articleRefs.value.forEach(el => {
@@ -151,7 +172,10 @@ const initObserver = () => {
     });
 };
 
-const fetchArticles = async () => {
+const fetchArticles = async (page) => {
+  if (typeof page === 'number') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   try {
     const res = await getArticles({
       page: currentPage.value,
@@ -159,12 +183,10 @@ const fetchArticles = async () => {
       status: 1
     });
     
-    // Reset logic
     articleRefs.value = [];
     articles.value = res.list;
     total.value = res.total;
     
-    // Wait for DOM update then observe
     nextTick(() => {
         initObserver();
     });
@@ -176,19 +198,52 @@ const fetchArticles = async () => {
 
 const fetchSidebar = async () => {
     try {
+        // Fetch Latest Articles (Limit 5)
+        const latestRes = await getArticles({ page: 1, page_size: 5, status: 1 });
+        latestArticles.value = latestRes.list;
+
         const catRes = await getCategoriesStats();
         categories.value = catRes;
         
         const tagRes = await getTagsStats();
         tags.value = tagRes;
+
+        const allRes = await getArticles({ page: 1, page_size: 1000, status: 1 });
+        const list = allRes.list;
+
+        const groups = {};
+        list.forEach(article => {
+            const dateObj = dayjs(article.created_at);
+            const dateStr = dateObj.format('YYYY年MM月');
+            const rawDate = dateObj.format('YYYY-MM');
+            
+            if (!groups[dateStr]) {
+                groups[dateStr] = { count: 0, rawDate: rawDate };
+            }
+            groups[dateStr].count++;
+        });
+        archives.value = Object.keys(groups).map(date => ({
+            date,
+            count: groups[date].count,
+            rawDate: groups[date].rawDate
+        }));
+
+        siteInfo.value.articleCount = allRes.total;
+        siteInfo.value.totalViews = list.reduce((acc, cur) => acc + (cur.views || 0), 0).toLocaleString();
+        siteInfo.value.wordCount = (list.length * 1200).toLocaleString(); 
+        
+        const startDate = dayjs('2023-01-01');
+        const now = dayjs();
+        siteInfo.value.runningTime = now.diff(startDate, 'day') + ' 天';
+        
+        if (list.length > 0) {
+            siteInfo.value.lastUpdate = dayjs(list[0].created_at).fromNow();
+        }
+
     } catch(e) {
         console.error(e);
     }
 }
-
-const formatDate = (date) => {
-  return dayjs(date).format('MMM D, YYYY');
-};
 
 const goDetail = (id) => {
   router.push(`/article/${id}`);
@@ -199,6 +254,14 @@ const goCategory = (id) => {
 };
 const goTag = (id) => {
     router.push(`/tag/${id}`);
+};
+
+const goArchive = (date) => {
+    router.push({ path: '/archive', query: { date } });
+};
+
+const formatDate = (date) => {
+  return dayjs(date).format('YYYY-MM-DD');
 };
 
 onMounted(() => {
@@ -250,159 +313,23 @@ onBeforeUnmount(() => {
     font-weight: 300;
 }
 
-/* Scroll Reveal Animation Classes */
-.scroll-reveal {
-    opacity: 0;
-    transform: translateY(60px) scale(0.9);
-    transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    top: 5em;
+/* Scroll Reveal Animation Classes - Deprecated / Replaced by global anim-scale-in */
+/* .scroll-reveal logic removed as we use anim-scale-in now */
+
+/* Zigzag Layout for Articles */
+/* Remove old :deep CSS logic as it is now handled by ArticleCard props */
+/* Clean up unused selectors */
+:deep(.article-card:nth-child(even)),
+:deep(.article-card:nth-child(even) .article-content),
+:deep(.article-card:nth-child(even) .article-header),
+:deep(.article-card:nth-child(even) .article-footer) {
+    /* Styles handled by prop */
 }
 
-.scroll-reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-.article-card {
-  margin-bottom: 30px;
-  cursor: pointer;
-  border: none;
-  background: var(--card-bg); 
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  overflow: hidden;
-  position: relative;
-  /* Remove old animation props */
-}
-
-/* Border Gradient Effect on Hover */
-.article-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    padding: 2px; /* Border thickness */
-    background: linear-gradient(45deg, transparent, transparent);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    transition: background 0.4s ease;
-    pointer-events: none;
-}
-
-.article-card:hover::before {
-    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-}
-
-.article-card:hover {
-  transform: translateY(-8px) scale(1.02) !important; /* Slightly lift and scale */
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-}
-
-:deep(.el-card__body) {
-    display: flex;
-    padding: 35px;
-    gap: 35px;
-}
-
-.article-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.article-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 12px;
-}
-
-.category-tag {
-    border-radius: 20px;
-    padding: 0 15px;
-    font-weight: 600;
-}
-
-.date {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.article-title {
-  margin: 0 0 15px 0;
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1.25;
-  transition: color 0.3s;
-  letter-spacing: -0.5px;
-}
-
-.article-card:hover .article-title {
-    color: var(--primary-color);
-}
-
-.article-summary {
-  color: var(--text-secondary);
-  line-height: 1.8;
-  font-size: 1.1rem;
-  margin-bottom: 30px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3; /* Show a bit more text */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.article-footer {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.read-more {
-    font-weight: 700;
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-    transition: gap 0.3s;
-}
-
-.article-card:hover .read-more {
-    gap: 12px;
-}
-
-.views {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-.article-cover {
-    width: 320px;
-    height: 240px;
-    border-radius: 16px;
-    overflow: hidden;
-    flex-shrink: 0;
-    box-shadow: var(--shadow-md);
-    position: relative;
-}
-
-.cover-image {
-    width: 100%;
-    height: 100%;
-    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.article-card:hover .cover-image {
-    transform: scale(1.1);
+/* Remove any order overrides to ensure natural flex flow */
+:deep(.article-card .article-footer .views),
+:deep(.article-card .article-footer .read-more) {
+    order: unset;
 }
 
 /* Sidebar */
@@ -412,51 +339,46 @@ onBeforeUnmount(() => {
 }
 
 .sidebar-card {
-  margin-bottom: 24px;
-  border-radius: 20px;
-  border: none;
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
+    padding: 20px;
+    margin-bottom: 0; /* Handled by flex gap now */
+    /* opacity: 0; REMOVED to ensure visibility if animation fails */
+    animation: fadeInUp 1s ease-out forwards;
 }
 
-.profile-card {
-    text-align: center;
-    padding: 30px 0;
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.avatar-placeholder {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
-    border-radius: 50%;
-    margin: 0 auto 20px;
+/* Staggered animation delays for sidebar items */
+.sidebar > *:nth-child(1) { animation-delay: 0.2s; }
+.sidebar > *:nth-child(2) { animation-delay: 0.4s; }
+.sidebar > *:nth-child(3) { animation-delay: 0.6s; }
+.sidebar > *:nth-child(4) { animation-delay: 0.8s; }
+.sidebar > *:nth-child(5) { animation-delay: 1.0s; }
+
+/* Flex container for sidebar to manage spacing consistently */
+.sidebar {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 800;
-    font-size: 1.5rem;
-    box-shadow: 0 10px 20px rgba(161, 196, 253, 0.4);
+    flex-direction: column;
+    gap: 40px; /* Increased consistent spacing */
 }
 
-.profile-name {
-    margin: 0 0 5px;
-    font-size: 1.4rem;
-    color: var(--text-main);
-    font-weight: 700;
-}
-
-.profile-bio {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    margin: 0;
+/* Remove manual margins since we use gap */
+.mt-24 {
+    margin-top: 0 !important;
 }
 
 .card-header {
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-main);
-    letter-spacing: -0.5px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .category-item {
@@ -472,8 +394,6 @@ onBeforeUnmount(() => {
 
 .category-item:hover {
     color: var(--primary-color);
-    background: rgba(var(--primary-color), 0.1); 
-    /* Would need rgb var, but simple hover works */
     background: rgba(0,0,0,0.03);
 }
 :global(.dark) .category-item:hover {
@@ -515,19 +435,48 @@ onBeforeUnmount(() => {
     margin-top: 24px;
 }
 
-@media (max-width: 900px) {
-    .article-cover {
-        width: 120px;
-        height: 120px;
-    }
+/* Latest Articles List */
+.latest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Slightly tighter gap */
 }
 
-@media (max-width: 768px) {
-    .article-cover {
-        display: none;
-    }
-    .hero-title {
-        font-size: 2.5rem;
-    }
+.latest-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.latest-item:hover {
+  background: rgba(0,0,0,0.03);
+}
+:global(.dark) .latest-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.latest-title {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Allow 2 lines for title */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.latest-item:hover .latest-title {
+  color: var(--primary-color);
+}
+
+.latest-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 </style>

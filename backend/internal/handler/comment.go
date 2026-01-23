@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zyy125/my-blog/backend/internal/handler/dto"
@@ -33,12 +34,16 @@ func (h *CommentHandler) Create(c *gin.Context) {
 	}
 
 	// DTO 转 Model
+	nickname := req.Nickname
+	if nickname == "" {
+		nickname = "匿名用户" + strconv.Itoa(int(time.Now().Unix()%10000))
+	}
+
 	comment := &model.Comment{
 		ArticleID: req.ArticleID,
 		ParentID:  req.ParentID, // 指针类型，可以为 nil
-		Nickname:  req.Nickname,
+		Nickname:  nickname,
 		Email:     req.Email,
-		Website:   req.Website,
 		Content:   req.Content,
 		IP:        c.ClientIP(),
 	}

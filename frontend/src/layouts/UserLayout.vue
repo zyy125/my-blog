@@ -1,4 +1,7 @@
 <template>
+  <!-- Global Background Effect -->
+  <BackgroundEffect />
+
   <el-container class="layout-container">
     <el-header class="header">
       <div class="header-inner">
@@ -14,7 +17,15 @@
             class="main-menu"
           >
             <el-menu-item index="/">首页</el-menu-item>
-            <el-menu-item index="/archive">归档</el-menu-item>
+            
+            <!-- Article Dropdown Menu -->
+            <el-sub-menu index="articles" popper-class="custom-submenu-popper">
+              <template #title>文章</template>
+              <el-menu-item index="/category">分类</el-menu-item>
+              <el-menu-item index="/tag">标签</el-menu-item>
+              <el-menu-item index="/archive">归档</el-menu-item>
+            </el-sub-menu>
+
             <el-menu-item index="/about">关于</el-menu-item>
           </el-menu>
           
@@ -28,14 +39,6 @@
                     class="search-input"
                 />
             </div>
-            <el-button 
-                circle 
-                class="theme-toggle" 
-                @click="toggleTheme"
-            >
-                <el-icon v-if="isDark"><Sunny /></el-icon>
-                <el-icon v-else><Moon /></el-icon>
-            </el-button>
           </div>
         </div>
       </div>
@@ -58,13 +61,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Search, Moon, Sunny } from '@element-plus/icons-vue';
+import { Search } from '@element-plus/icons-vue';
+import BackgroundEffect from '@/components/BackgroundEffect.vue';
 
 const router = useRouter();
 const keyword = ref('');
-const isDark = ref(false);
 
 const handleSearch = () => {
   if (keyword.value.trim()) {
@@ -72,33 +75,9 @@ const handleSearch = () => {
   }
 };
 
-const toggleTheme = () => {
-    isDark.value = !isDark.value;
-    updateThemeClass();
-};
-
-const updateThemeClass = () => {
-    const html = document.documentElement;
-    if (isDark.value) {
-        html.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        html.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-    }
-};
-
 onMounted(() => {
-    // Initialize Theme
-    const savedTheme = localStorage.getItem('theme');
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
-        isDark.value = true;
-    } else {
-        isDark.value = false;
-    }
-    updateThemeClass();
+    // Force Dark Mode Class
+    document.documentElement.classList.add('dark');
 });
 </script>
 
@@ -107,6 +86,10 @@ onMounted(() => {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    /* Ensure container is transparent so background shows through */
+    background: transparent;
+    position: relative;
+    z-index: 1; /* Ensure content is above the background */
 }
 
 .header {
@@ -114,7 +97,8 @@ onMounted(() => {
   top: 0;
   z-index: 1000;
   border-bottom: 1px solid var(--border-color);
-  background: var(--card-bg);
+  background: var(--card-bg); /* Glassmorphism */
+  backdrop-filter: blur(12px);
   padding: 0;
   height: 60px;
   box-shadow: var(--shadow-sm);
@@ -134,10 +118,12 @@ onMounted(() => {
 .logo-text {
   font-size: 24px;
   font-weight: 700;
-  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  /* Use lighter gradient for dark theme */
+  background: linear-gradient(45deg, #a1c4fd, #c2e9fb); 
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
+  text-shadow: 0 0 10px rgba(161, 196, 253, 0.3);
 }
 
 .nav-section {
@@ -149,6 +135,40 @@ onMounted(() => {
 .main-menu {
     border-bottom: none !important;
     background: transparent !important;
+}
+
+/* Ensure menu items are white */
+:deep(.el-menu-item), :deep(.el-sub-menu__title) {
+    color: var(--text-secondary) !important;
+}
+:deep(.el-menu-item.is-active), :deep(.el-sub-menu.is-active .el-sub-menu__title) {
+    color: var(--primary-color) !important;
+    border-bottom-color: var(--primary-color) !important;
+}
+:deep(.el-menu-item:hover), :deep(.el-sub-menu__title:hover) {
+    color: var(--text-main) !important;
+    background-color: rgba(255,255,255,0.05) !important;
+}
+
+/* Custom Submenu Styles (since it's a popper, global styles might be needed in style.css, but we try deep first) */
+:global(.custom-submenu-popper) {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--border-color) !important;
+}
+:global(.custom-submenu-popper .el-menu) {
+    background: transparent !important;
+}
+:global(.custom-submenu-popper .el-menu-item) {
+    color: var(--text-secondary) !important;
+    background: transparent !important;
+}
+:global(.custom-submenu-popper .el-menu-item:hover) {
+    color: var(--primary-color) !important;
+    background-color: rgba(255,255,255,0.05) !important;
+}
+:global(.custom-submenu-popper .el-menu-item.is-active) {
+    color: var(--primary-color) !important;
 }
 
 .actions {
@@ -180,6 +200,7 @@ onMounted(() => {
   background: var(--card-bg);
   border-top: 1px solid var(--border-color);
   margin-top: auto;
+  backdrop-filter: blur(12px);
 }
 
 /* Page Transitions */

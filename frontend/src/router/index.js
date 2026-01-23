@@ -1,6 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 import UserLayout from '@/layouts/UserLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
+
+// NProgress Configuration
+NProgress.configure({ showSpinner: false, easing: 'ease', speed: 500 });
 
 const routes = [
   // User Routes
@@ -10,7 +15,9 @@ const routes = [
     children: [
       { path: '', component: () => import('@/views/Home.vue') },
       { path: 'article/:id', component: () => import('@/views/ArticleDetail.vue') },
+      { path: 'category', component: () => import('@/views/CategoryList.vue') }, // New: All Categories
       { path: 'category/:id', component: () => import('@/views/Category.vue') },
+      { path: 'tag', component: () => import('@/views/TagList.vue') }, // New: All Tags
       { path: 'tag/:id', component: () => import('@/views/Tag.vue') },
       { path: 'search', component: () => import('@/views/Search.vue') },
       { path: 'archive', component: () => import('@/views/Archive.vue') },
@@ -42,11 +49,20 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0, behavior: 'smooth' };
+    }
+  }
 })
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
+  NProgress.start();
+  
   if (to.matched.some(record => record.meta.requiresAuth)) {
     const token = localStorage.getItem('admin_token');
     const expiresAt = localStorage.getItem('token_expires_at');
@@ -70,6 +86,10 @@ router.beforeEach((to, from, next) => {
   } else {
     next();
   }
+});
+
+router.afterEach(() => {
+  NProgress.done();
 });
 
 export default router
