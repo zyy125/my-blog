@@ -1,0 +1,29 @@
+# 服务器配置
+
+server: 
+
+ port: ":8080"    # 服务监听端口
+
+ mode: "release"    # 运行模式: debug 或 release
+
+# 数据库配置
+
+database:
+
+ host: "mysql"
+
+ port: 3306
+
+ username: "blog"
+
+ password: "your_pwd"  # 请修改为你的数据库密码
+
+ dbname: "blog"
+
+# 管理员配置
+
+admin:
+
+ secret_key: "your_secret_key"  # 请修改为随机字符串
+
+ token_expire_hours: 2  # Token 过期时间（小时）
