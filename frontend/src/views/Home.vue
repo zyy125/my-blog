@@ -232,7 +232,7 @@ const fetchSidebar = async () => {
         siteInfo.value.totalViews = list.reduce((acc, cur) => acc + (cur.views || 0), 0).toLocaleString();
         siteInfo.value.wordCount = (list.length * 1200).toLocaleString(); 
         
-        const startDate = dayjs('2023-01-01');
+        const startDate = dayjs('2026-01-24');
         const now = dayjs();
         siteInfo.value.runningTime = now.diff(startDate, 'day') + ' 天';
         
