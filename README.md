@@ -2,7 +2,7 @@
 
 这是一个用ai开发的基于 **Go (Gin)** 和 **Vue 3**的个人博客系统。
 
-**在线网址：[zhu-ying.online](zhu-ying.online)**
+**在线网址：[zhu-ying.online](https://zhu-ying.online/)**
 
 ## 功能特性
 
