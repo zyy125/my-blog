@@ -73,3 +73,6 @@ backend/uploads/*
 ############################
 # 如果你不想提交临时生成的 nginx 配置
 nginx/*.log
+
+# SSL certificates (Let's Encrypt)
+certs/

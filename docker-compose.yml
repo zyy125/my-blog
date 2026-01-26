@@ -30,8 +30,11 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend
+    volumes:
+      - ./certs:/etc/letsencrypt:ro
 
 volumes:
   mysql_data:
